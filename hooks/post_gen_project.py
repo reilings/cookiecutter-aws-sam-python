@@ -28,9 +28,6 @@ def remove_optional_files():
 def main():
 
     project_slug = '{{ cookiecutter.project_slug }}'
-    makefile_choice = '{{ cookiecutter.include_experimental_make }}'.lower()
-    if makefile_choice == 'n':
-        remove_optional_files()
 
     print(SUCCESS +
           "Project initialized successfully! You can now jump to {} folder".

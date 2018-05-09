@@ -17,14 +17,12 @@ Globals:
 
 Resources:
 
-    FirstFunction:
+    {{ cookiecutter.lambda_function_name }}:
         Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
         Properties:
             CodeUri: build/
-            Handler: app.lambda_handler
+            Handler: {{ cookiecutter.project_module_slug }}.app.handler
             Runtime: python3.6
-{%- if cookiecutter.include_xray == "y" %}
-            Tracing: Active {% endif %} # https://docs.aws.amazon.com/lambda/latest/dg/lambda-x-ray.html
 {%- if cookiecutter.include_apigw == "y" %}
             Events:
                 CatchAll:
@@ -35,25 +33,22 @@ Resources:
             Environment: # More info about Env Vars: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#environment-object
                 Variables:
                     PARAM1: VALUE
-{%- if cookiecutter.include_xray == "y" %}
 
     # Sample policy to add additional permissions to your Lambda
-    FirstFunctionAdditionalPermission:
-        Type: "AWS::IAM::Policy"
-        Properties:
-            PolicyName: "root"
-            PolicyDocument:
-                Version: "2012-10-17"
-                Statement:
-                    -
-                        Effect: "Allow"
-                        Action: "ssm:GetParameters"
-                        Resource: "*"
+  FirstFunctionAdditionalPermission:
+    Type: "AWS::IAM::Policy"
+    Properties:
+      PolicyName: "root"
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          -
+            Effect: "Allow"
+            Action: "ssm:GetParameters"
+            Resource: "*"
             Roles:
-                -
-                    Ref: !GetAtt FirstFunctionRole.Arn # Sample policy to demonstrate Implicit IAM Role created with SAM
-
-{%- endif %}
+              -
+                Ref: !GetAtt FirstFunctionRole.Arn # Sample policy to demonstrate Implicit IAM Role created with SAM
 
 Outputs:
 {% if cookiecutter.include_apigw == "y"%}

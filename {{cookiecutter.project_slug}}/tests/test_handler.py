@@ -1,6 +1,6 @@
 import json
 import pytest
-from first_function import app
+from {{ cookiecutter.project_module_slug }} import app
 
 
 @pytest.fixture()

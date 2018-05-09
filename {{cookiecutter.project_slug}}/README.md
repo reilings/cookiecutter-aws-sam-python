@@ -30,14 +30,14 @@ pipenv run python -m pytest tests/ -v
 
 ## Packaging
 
-AWS Lambda Python runtime requires a flat folder with all dependencies including the application. To facilitate this process, the pre-made SAM template expects this structure to be under `<src>/build/`:
+AWS Lambda Python runtime requires a flat folder with all dependencies including the application. To facilitate this process, the pre-made SAM template expects this structure to be under `build/`:
 
 ```yaml
 ...
-    FirstFunction:
+    {{ cookiecutter.lambda_function_name }}:
         Type: AWS::Serverless::Function
         Properties:
-            CodeUri: first_function/build/
+            CodeUri: build/
             ...
 ```
 
@@ -50,8 +50,8 @@ With that in mind, we will:
 ```bash
 # Create a hashed pip requirements.txt file only with our app dependencies (no dev deps)
 pipenv lock -r > requirements.txt
-pip install -r requirements.txt -t first_function/build/
-cp -R first_function/app.py first_function/build/
+pip install -r requirements.txt -t build/
+cp -R {{ cookiecutter.project_module_slug }} build/
 ```
 
 ### Local development
@@ -61,7 +61,7 @@ Given that you followed Packaging instructions then run one of the following opt
 **Invoking function locally without API Gateway**
 
 ```bash
-echo '{"lambda": "payload"}' | sam local invoke FirstFunction
+echo '{"lambda": "payload"}' | sam local invoke {{ cookiecutter.lambda_function_name }}
 ```
 
 **Invoking function locally through local API Gateway**
@@ -112,7 +112,6 @@ aws cloudformation describe-stacks \
 {% endif %}
 
 # Appendix
-{% if cookiecutter.include_experimental_make == "y" %}
 ## Makefile
 
 It is important that the Makefile created only works on OSX/Linux but the tasks above can easily be turned into a Powershell or any scripting language you may want too.
@@ -120,15 +119,12 @@ It is important that the Makefile created only works on OSX/Linux but the tasks 
 The following make targets will automate that we went through above:
 
 * Find all available targets: `make`
-* Install all deps and clone (OS hard link) our lambda function to `/build`: `make build SERVICE="first_function"`
-    - `SERVICE="first_function"` tells Make to start the building process from there
+* Install all deps and clone (OS hard link) our lambda function to `/build`: `make build`
     - By creating a hard link we no longer need to keep copying our app over to Build and keeps it tidy and clean
 * Run `Pytest` against all tests found under `tests` folder: `make test`
-* Install all deps and builds a ZIP file ready to be deployed: `make package SERVICE="first_function"`
-    - You can also build deps and a ZIP file within a Docker Lambda container: `make package SERVICE="first_function" DOCKER=1`
+* Install all deps and builds a ZIP file ready to be deployed: `make package`
+    - You can also build deps and a ZIP file within a Docker Lambda container: `make package DOCKER=1`
     - This is particularly useful when using C-extensions that if built on your OS may not work when deployed to Lambda (different OS)
-
-{% endif %}
 
 ## AWS CLI commands
 

@@ -4,7 +4,7 @@ BASE := $(shell /bin/pwd)
 #  Python vars	#
 ################# 
 
-SERVICE ?= service_not_defined
+SERVICE = {{ cookiecutter.project_module_slug }}
 
 ############# 
 #  SAM vars	#
@@ -50,7 +50,7 @@ run: ##=> Run SAM Local API GW and can optionally run new containers connected t
 		|| sam local start-api --docker-network ${NETWORK}
 
 test: ##=> Run pytest
-	@AWS_XRAY_CONTEXT_MISSING=LOG_ERROR pipenv run python -m pytest --cov . --cov-report term-missing tests/ -v
+	@pipenv run python -m pytest --cov . --cov-report term-missing tests/ -v
 
 ############# 
 #  Helpers  #
@@ -149,16 +149,16 @@ define HELP_MESSAGE
 	$ make shell
 
 	...::: Cleans up the environment - Deletes Virtualenv, ZIP builds and Dev env :::...
-	$ make clean SERVICE="slack"
+	$ make clean
 
 	...::: Creates local dev environment for Python hot-reloading w/ packages:::...
-	$ make build SERVICE="first_function"
+	$ make build
 
 	...::: Bundles app and dependencies into a ZIP file :::...
-	$ make package SERVICE="email"
+	$ make package
 
 	...::: Bundles app and dependencies into a ZIP file using Docker:::...
-	$ make package SERVICE="email" DOCKER=1
+	$ make package DOCKER=1
 
 	...::: Run SAM Local API Gateway :::...
 	$ make run
