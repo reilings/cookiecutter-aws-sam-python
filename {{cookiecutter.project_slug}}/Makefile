@@ -29,7 +29,7 @@ shell:
 	@pipenv shell
 
 package: _check_service_definition ##=> Builds package using Docker Lambda container
-ifeq ($(DOCKER),1)
+ifeq ($(DOCKER),0)
 	$(info [*] Cleaning up local dev/builds before build task...)
 	@$(MAKE) clean SERVICE="${SERVICE}"
 	$(info [+] Packaging service '$(SERVICE)' using Docker Lambda -- This may take a while...)
@@ -137,8 +137,8 @@ define HELP_MESSAGE
 		Info: Environment variable to declare where source code for lambda is
 
 	DOCKER
-		Default: not_defined
-		Info: Environment variable to declare whether Docker should be used to build (great for C-deps)
+		Default: 1
+		Info: Environment variable to declare whether Docker should be used to build. (Leaving Docker builds enabled is recommended.)
 
 	Common usage:
 
@@ -154,11 +154,11 @@ define HELP_MESSAGE
 	...::: Creates local dev environment for Python hot-reloading w/ packages:::...
 	$ make build
 
-	...::: Bundles app and dependencies into a ZIP file :::...
+	...::: Bundles app and dependencies into a ZIP file using Docker:::...
 	$ make package
 
-	...::: Bundles app and dependencies into a ZIP file using Docker:::...
-	$ make package DOCKER=1
+	...::: Bundles app and dependencies into a ZIP file _without_ using Docker :::...
+	$ make package DOCKER=0
 
 	...::: Run SAM Local API Gateway :::...
 	$ make run
