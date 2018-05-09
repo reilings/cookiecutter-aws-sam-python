@@ -1,13 +1,4 @@
-{% if cookiecutter.include_experimental_make == "y" %}
-
-#########################################################
-#														#
-# EXPERIMENTAL - Only use if you know what you're doing #
-#														#
-#########################################################
-
 BASE := $(shell /bin/pwd)
-CODE_COVERAGE = 72
 
 ################# 
 #  Python vars	#
@@ -27,7 +18,7 @@ target:
 
 clean: ##=> Deletes current build environment and latest build
 	$(info [*] Who needs all that anyway? Destroying environment....)
-	rm -rf ./$(SERVICE)/build
+	rm -rf ./build
 	rm -rf ./${SERVICE}.zip
 
 all: clean build
@@ -36,7 +27,7 @@ install: _install_packages _install_dev_packages
 
 shell: 
 	@pipenv shell
-	
+
 package: _check_service_definition ##=> Builds package using Docker Lambda container
 ifeq ($(DOCKER),1)
 	$(info [*] Cleaning up local dev/builds before build task...)
@@ -59,7 +50,7 @@ run: ##=> Run SAM Local API GW and can optionally run new containers connected t
 		|| sam local start-api --docker-network ${NETWORK}
 
 test: ##=> Run pytest
-	@AWS_XRAY_CONTEXT_MISSING=LOG_ERROR pipenv run python -m pytest --cov . --cov-report term-missing --cov-fail-under $(CODE_COVERAGE) tests/ -v
+	@AWS_XRAY_CONTEXT_MISSING=LOG_ERROR pipenv run python -m pytest --cov . --cov-report term-missing tests/ -v
 
 ############# 
 #  Helpers  #
@@ -90,10 +81,11 @@ ifeq ($(wildcard requirements.txt),)
 endif
 
 _clone_service_to_build:
-ifeq ($(wildcard $(SERVICE)/build/.),)
-	$(info [+] Cloning ${SERVICE} directory structure to ${SERVICE}/build)
-	rsync -a -f "+ */" -f "- *" ${SERVICE}/ ${SERVICE}/build/
-	$(info [+] Cloning source files from ${SERVICE} to ${SERVICE}/build)
+ifeq ($(wildcard build/.),)
+	$(info [+] Cloning ${SERVICE} directory structure to build/${SERVICE})
+	mkdir build
+	rsync -a -f "+ */" -f "- *" ${SERVICE}/ build${SERVICE}/
+	$(info [+] Cloning source files from ${SERVICE} to build/${SERVICE}/)
 	@find ${SERVICE} -type f \
 			-not -name "*.pyc" \
 			-not -name "*__pycache__" \
@@ -101,7 +93,7 @@ ifeq ($(wildcard $(SERVICE)/build/.),)
 			-not -name "event.json" \
 			-not -name "build" | cut -d '/' -f2- > .results.txt
 	@while read line; do \
-		ln -f ${SERVICE}/$$line ${SERVICE}/build/$$line; \
+		ln -f ${SERVICE}/$$line build/${SERVICE}/$$line; \
 	done < .results.txt
 	rm -f .results.txt
 else
@@ -111,7 +103,7 @@ endif
 _check_dev_definition: _check_service_definition
 	$(info [*] Checking whether service $(SERVICE) development build exists...)
 
-ifeq ($(wildcard $(SERVICE)/build/.),)
+ifeq ($(wildcard build/$(SERVICE)/.),)
 	$(warning [FIX] run 'make build SERVICE=$(SERVICE)' to create one")
 	$(error [!] '$(SERVICE)' doesn't have development build)
 endif
@@ -123,7 +115,7 @@ _install_deps:
 	@pipenv run pip install \
 		--isolated \
 		--disable-pip-version-check \
-		-Ur requirements.txt -t ${SERVICE}/build/
+		-Ur requirements.txt -t build/
 
 # Package application and devs together in expected zip from build
 _package: _clone_service_to_build _check_service_definition _install_deps
@@ -132,7 +124,7 @@ _package: _clone_service_to_build _check_service_definition _install_deps
 # As its name states: Zip everything up from build
 _zip: _check_dev_definition 
 	$(info [+] Creating '$(SERVICE)' ZIP...")
-	@cd ${SERVICE}/build && zip -rq -9 "$(BASE)/$(SERVICE).zip" * \
+	@cd build/${SERVICE} && zip -rq -9 "$(BASE)/$(SERVICE).zip" * \
 	--exclude "wheel/*" "setuptools/*" "pkg_resources/*" "pip/*" \
 			  "easy_install.py" "__pycache__/*" "*.dist-info/*" "./**/__pycache__/*"
 	$(info [*] Build complete: $(BASE)/$(SERVICE).zip)
