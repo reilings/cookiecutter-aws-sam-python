@@ -84,7 +84,7 @@ _clone_service_to_build:
 ifeq ($(wildcard build/.),)
 	$(info [+] Cloning ${SERVICE} directory structure to build/${SERVICE})
 	mkdir build
-	rsync -a -f "+ */" -f "- *" ${SERVICE}/ build${SERVICE}/
+	rsync -a -f "+ */" -f "- *" ${SERVICE}/ build/${SERVICE}/
 	$(info [+] Cloning source files from ${SERVICE} to build/${SERVICE}/)
 	@find ${SERVICE} -type f \
 			-not -name "*.pyc" \
@@ -171,5 +171,3 @@ define HELP_MESSAGE
 	...::: Run SAM Local API Gateway within a Docker Network :::...
 	$ make run NETWORK="sam-network"
 endef
-
-{% endif %}

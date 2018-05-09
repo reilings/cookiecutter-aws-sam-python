@@ -35,7 +35,7 @@ Resources:
                     PARAM1: VALUE
 
     # Sample policy to add additional permissions to your Lambda
-  FirstFunctionAdditionalPermission:
+  {{ cookiecutter.lambda_function_name}}AdditionalPermission:
     Type: "AWS::IAM::Policy"
     Properties:
       PolicyName: "root"
@@ -48,7 +48,7 @@ Resources:
             Resource: "*"
             Roles:
               -
-                Ref: !GetAtt FirstFunctionRole.Arn # Sample policy to demonstrate Implicit IAM Role created with SAM
+                Ref: !GetAtt {{ cookiecutter.lambda_function_name}}Role.Arn # Sample policy to demonstrate Implicit IAM Role created with SAM
 
 Outputs:
 {% if cookiecutter.include_apigw == "y"%}
@@ -57,7 +57,7 @@ Outputs:
       Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/first/proxy"
 {%- endif %}
 
-    FirstFunction:
+    {{ cookiecutter.lambda_function_name }}:
       Description: "First Lambda Function ARN"
-      Value: !GetAtt FirstFunction.Arn
+      Value: !GetAtt {{ cookiecutter.lambda_function_name }}.Arn
 
