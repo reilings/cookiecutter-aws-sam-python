@@ -23,6 +23,7 @@ Resources:
             CodeUri: build/
             Handler: {{ cookiecutter.project_module_slug }}.app.handler
             Runtime: python3.6
+            Role: arn:aws:iam::my-aws-account-id:role/{{ cookiecutter.lambda_function_name }}ExecutionRole
 {%- if cookiecutter.include_apigw == "y" %}
             Events:
                 CatchAll:
@@ -33,22 +34,6 @@ Resources:
             Environment: # More info about Env Vars: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#environment-object
                 Variables:
                     PARAM1: VALUE
-
-    # Sample policy to add additional permissions to your Lambda
-    {{ cookiecutter.lambda_function_name}}AdditionalPermission:
-      Type: "AWS::IAM::Policy"
-      Properties:
-        PolicyName: "root"
-        PolicyDocument:
-          Version: "2012-10-17"
-          Statement:
-            -
-              Effect: "Allow"
-              Action: "ssm:GetParameters"
-              Resource: "*"
-              Roles:
-                -
-                  Ref: !GetAtt {{ cookiecutter.lambda_function_name}}Role.Arn # Sample policy to demonstrate Implicit IAM Role created with SAM
 
 Outputs:
 {% if cookiecutter.include_apigw == "y"%}
