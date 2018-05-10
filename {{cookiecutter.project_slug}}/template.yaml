@@ -1,48 +1,47 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 Description: >
-    {{ cookiecutter.project_name }}
-    
-    {{ cookiecutter.project_short_description }}
+  {{ cookiecutter.project_name }}
+  
+  {{ cookiecutter.project_short_description }}
 
 # More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
 Globals:
-    Function:
-        Timeout: 5
+  Function:
+    Timeout: 5
 {%- if cookiecutter.include_safe_deployment == "y" %}
-        AutoPublishAlias: live # More info about Safe Deployments: https://github.com/awslabs/serverless-application-model/blob/master/docs/safe_lambda_deployments.rst
-        DeploymentPreference:
-            Type: Linear10PercentEvery1Minute {% endif %}
-
+    AutoPublishAlias: live # More info about Safe Deployments: https://github.com/awslabs/serverless-application-model/blob/master/docs/safe_lambda_deployments.rst
+    DeploymentPreference:
+      Type: Linear10PercentEvery1Minute {% endif %}
 
 Resources:
-
-    {{ cookiecutter.lambda_function_name }}:
-        Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
-        Properties:
-            CodeUri: build/
-            Handler: {{ cookiecutter.project_module_slug }}.app.handler
-            Runtime: python3.6
-            Role: arn:aws:iam::my-aws-account-id:role/{{ cookiecutter.lambda_function_name }}ExecutionRole
+  {{ cookiecutter.lambda_function_name }}:
+    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+    Properties:
+      FunctionName: {{ cookiecutter.lambda_function_name }}
+      CodeUri: build/
+      Handler: {{ cookiecutter.project_module_slug }}.app.handler
+      Runtime: python3.6
+      Role: arn:aws:iam::my-aws-account-id:role/{{ cookiecutter.lambda_function_name }}ExecutionRole
 {%- if cookiecutter.include_apigw == "y" %}
-            Events:
-                CatchAll:
-                    Type: Api # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api
-                    Properties:
-                        Path: /first/{proxy+}
-                        Method: any {% endif %}
-            Environment: # More info about Env Vars: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#environment-object
-                Variables:
-                    PARAM1: VALUE
+      Events:
+        CatchAll:
+          Type: Api # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api
+          Properties:
+            Path: /first/{proxy+}
+            Method: any {% endif %}
+      Environment: # More info about Env Vars: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#environment-object
+        Variables:
+          PARAM1: VALUE
 
 Outputs:
 {% if cookiecutter.include_apigw == "y"%}
-    FirstApigwURL:
-      Description: "API Gateway endpoint URL for Prod environment for First Function"
-      Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/first/proxy"
+  FirstApigwURL:
+    Description: "API Gateway endpoint URL for Prod environment for First Function"
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/first/proxy"
 {%- endif %}
 
-    {{ cookiecutter.lambda_function_name }}:
-      Description: "First Lambda Function ARN"
-      Value: !GetAtt {{ cookiecutter.lambda_function_name }}.Arn
+  {{ cookiecutter.lambda_function_name }}:
+    Description: "First Lambda Function ARN"
+    Value: !GetAtt {{ cookiecutter.lambda_function_name }}.Arn
 
