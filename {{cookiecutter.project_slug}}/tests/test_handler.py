@@ -1,8 +1,10 @@
+{% if cookiecutter.include_apigw == "y" %}
 import json
-import pytest
+{% endif %}
 from {{ cookiecutter.project_module_slug }} import app
+import pytest
 
-
+{% if cookiecutter.include_apigw == "y" %}
 @pytest.fixture()
 def apigw_event():
     """ Generates API GW Event"""
@@ -83,10 +85,19 @@ def apigw_event():
         "path": "/examplepath"
     }
 
-
 def test_handler(apigw_event):
 
     ret = app.handler(apigw_event, "")
 
     assert ret['statusCode'] == 200
     assert ret['body'] == json.dumps({'hello': 'world'})
+{% else %}
+@pytest.fixture()
+def lambda_event():
+    return {"someparam": "somevalue"}
+
+
+def test_handler(lambda_event):
+    ret = app.handler(lambda_event, "")
+
+    assert ret["hello"] == "world"{% endif %}

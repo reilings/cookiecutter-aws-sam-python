@@ -1,6 +1,8 @@
-import boto3
-import json
+{% if cookiecutter.include_apigw == "y" %}import json
+{% endif %}
 import os
+
+import boto3
 
 
 def runs_on_aws_lambda():
@@ -17,8 +19,7 @@ def handler(event, context):
         This method is invoked by the API Gateway: /Prod/first/{proxy+} endpoint.
     """
     session = boto3.Session()
-    message = get_message()
-
+    message = get_message(session)
 {% if cookiecutter.include_apigw == "y" %}
     return {
         "statusCode": 200,
@@ -28,6 +29,5 @@ def handler(event, context):
     return message
 {% endif %}
 
-
-def get_message():
-    return { "hello": "world" }
+def get_message(session):
+    return {"hello": "world"}
