@@ -6,6 +6,8 @@ BASE := $(shell /bin/pwd)
 
 SERVICE = {{ cookiecutter.project_module_slug }}
 
+DOCKER = 1
+
 ############# 
 #  SAM vars	#
 ############# 
@@ -29,7 +31,7 @@ shell:
 	@pipenv shell
 
 package: _check_service_definition ##=> Builds package using Docker Lambda container
-ifeq ($(DOCKER),0)
+ifeq ($(DOCKER),1)
 	$(info [*] Cleaning up local dev/builds before build task...)
 	@$(MAKE) clean SERVICE="${SERVICE}"
 	$(info [+] Packaging service '$(SERVICE)' using Docker Lambda -- This may take a while...)
@@ -58,7 +60,7 @@ test: ##=> Run pytest
 
 _install_packages:
 	$(info [*] Install required packages...)
-	@pipenv install
+	@pipenv --three install
 
 _install_dev_packages:
 	$(info [*] Install required dev-packages...)
@@ -74,10 +76,6 @@ endif
 
 ifeq ($(wildcard $(SERVICE)/.),)
 	$(error [!] '$(SERVICE)' folder doesn't exist)
-endif
-
-ifeq ($(wildcard requirements.txt),)
-	$(error [!] Pip requirements file missing from $(BASE) folder...)
 endif
 
 _clone_service_to_build:
