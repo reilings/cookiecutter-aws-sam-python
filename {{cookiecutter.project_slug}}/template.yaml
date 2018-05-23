@@ -22,6 +22,7 @@ Resources:
       CodeUri: build/
       Handler: {{ cookiecutter.project_module_slug }}.app.handler
       Runtime: python3.6
+      Timeout: 30
       Role: arn:aws:iam::my-aws-account-id:role/{{ cookiecutter.lambda_function_name }}ExecutionRole
 {%- if cookiecutter.include_apigw == "y" %}
       Events:
