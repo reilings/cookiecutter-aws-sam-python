@@ -8,6 +8,16 @@ SERVICE = {{ cookiecutter.project_module_slug }}
 
 DOCKER = 1
 
+#######################
+# CloudFormation vars #
+#######################
+
+BUCKET ?= bucket_not_defined
+
+REGION = 'us-east-1'
+
+STACK = {{ cookiecutter.project_slug }}
+
 ############# 
 #  SAM vars	#
 ############# 
@@ -54,6 +64,12 @@ run: ##=> Run SAM Local API GW and can optionally run new containers connected t
 test: ##=> Run pytest
 	@pipenv run python -m pytest --cov . --cov-report term-missing tests/ -v
 
+upload: _check_package_zip
+	@aws cloudformation package --template-file template.yaml --output-template-file packaged.yaml --s3-bucket ${BUCKET}
+
+deploy: _check_package_yaml
+	@aws cloudformation package --template-file packaged.yaml --stack-name ${STACK} --capabilities CAPBILITY_IAM --region ${REGION}
+
 ############# 
 #  Helpers  #
 ############# 
@@ -65,6 +81,16 @@ _install_packages:
 _install_dev_packages:
 	$(info [*] Install required dev-packages...)
 	@pipenv install -d
+
+_check_package_zip:
+	ifeq ($(wildcard $(SERVICE).zip),)
+		$(error [!] '$(SERVICE).zip' package doesn't exist. Run 'make package' first)
+	endif
+
+_check_package_yaml:
+	ifeq ($(wildcard packaged.yaml),)
+		$(error[!] 'packaged.yaml' file doesn't exist. Run 'make upload' first)
+	endif
 
 _check_service_definition:
 	$(info [*] Checking whether service $(SERVICE) exists...)
@@ -131,12 +157,24 @@ define HELP_MESSAGE
 	Environment variables to be aware of or to hardcode depending on your use case:
 
 	SERVICE
-		Default: not_defined
+		Default: {{ cookiecutter.project_module_slug }}
 		Info: Environment variable to declare where source code for lambda is
 
 	DOCKER
 		Default: 1
 		Info: Environment variable to declare whether Docker should be used to build. (Leaving Docker builds enabled is recommended.)
+
+	STACK
+		Default: {{ cookiecutter.project_slug }}
+		Info: Environment variable to declare the name of the CloudFormation stack to deploy.
+
+	REGION
+		Default: us-east-1
+		Info: Environment variable to declare which AWS region should be deployed to.
+
+	BUCKET
+		Default: not_defined
+		Info: Environment variable to declare which AWS S3 bucket the Lambda package should be uploaded to and deployed from.
 
 	Common usage:
 
@@ -157,6 +195,15 @@ define HELP_MESSAGE
 
 	...::: Bundles app and dependencies into a ZIP file _without_ using Docker :::...
 	$ make package DOCKER=0
+
+	...::: Uploads package to your S3 bucket
+        $ make upload BUCKET=<bucketname>
+
+        ...::: Deploys an uploaded package to Lambda
+        $ make deploy
+
+	...::: Deploys an uploaded package to Lambda in us-west-2
+	$ make deploy REGION=us-west-2
 
 	...::: Run SAM Local API Gateway :::...
 	$ make run
