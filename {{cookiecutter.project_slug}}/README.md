@@ -2,6 +2,16 @@
 
 {{ cookiecutter.project_short_description }}
 
+## Super Quick Start!
+If you have local AWS credentials available, S3 and CloudFormation permissions, and have already installed the [required software](#requirements), you can deploy a function **right now**:
+
+```bash
+aws mb s3://my-bucket-rename-me
+make install && make package && make upload BUCKET=my-bucket-rename-me && make deploy
+```
+
+Once the CloudFormation run completes you will find a Lambda function named {{ cookiecutter.lambda_function_name }} in the us-east-1 region (pass the `REGION` env variable to `make deploy` to change this, e.g. `make deploy REGION=us-west-2`) using an execution role named {{ cookiecutter.lambda_function_name }}.LambdaRole.
+
 ## Requirements
 
 * AWS CLI already configured with at least PowerUser permission
@@ -68,6 +78,7 @@ If the previous command run successfully you should now be able to hit the follo
 
 ## Deployment
 
+*The following instructions assume you have local AWS credentials available and permission to perform the relevant S3 and CloudFormation actions.*
 
 First and foremost, we need a S3 bucket where we can upload our Lambda functions packaged as ZIP before we deploy anything - If you don't have a S3 bucket to store code artifacts then this is a good time to create one:
 
