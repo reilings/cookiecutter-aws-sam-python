@@ -15,15 +15,32 @@ Globals:
       Type: Linear10PercentEvery1Minute {% endif %}
 
 Resources:
+  {{ cookiecutter.lambda_function_name }}LambdaRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: {{ cookiecutter.lambda_function_name }}LambdaRole
+      ManagedPolicyArns:
+        - "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          -
+            Effect: "Allow"
+            Principal:
+              Service:
+                - "lambda.amazonaws.com"
+            Action:
+              - "sts:AssumeRole"
+      Path: "/"
   {{ cookiecutter.lambda_function_name }}:
     Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
     Properties:
       FunctionName: {{ cookiecutter.lambda_function_name }}
       CodeUri: build/
       Handler: {{ cookiecutter.project_module_slug }}.app.handler
+      Role: !GetAtt {{ cookiecutter.lambda_function_name }}LambdaRole.Arn
       Runtime: python3.6
       Timeout: 30
-      Role: arn:aws:iam::my-aws-account-id:role/{{ cookiecutter.lambda_function_name }}ExecutionRole
 {%- if cookiecutter.include_apigw == "y" %}
       Events:
         CatchAll:

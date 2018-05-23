@@ -12,11 +12,9 @@ DOCKER = 1
 # CloudFormation vars #
 #######################
 
-BUCKET ?= bucket_not_defined
-
 REGION = 'us-east-1'
 
-STACK = {{ cookiecutter.project_slug }}
+STACK = {{ cookiecutter.cf_stack_name }}
 
 ############# 
 #  SAM vars	#
@@ -64,11 +62,11 @@ run: ##=> Run SAM Local API GW and can optionally run new containers connected t
 test: ##=> Run pytest
 	@pipenv run python -m pytest --cov . --cov-report term-missing tests/ -v
 
-upload: _check_package_zip
+upload: _check_package_zip _check_bucket_definition
 	@aws cloudformation package --template-file template.yaml --output-template-file packaged.yaml --s3-bucket ${BUCKET}
 
 deploy: _check_package_yaml
-	@aws cloudformation package --template-file packaged.yaml --stack-name ${STACK} --capabilities CAPBILITY_IAM --region ${REGION}
+	@aws cloudformation deploy --template-file packaged.yaml --stack-name ${STACK} --capabilities CAPABILITY_NAMED_IAM --region ${REGION}
 
 ############# 
 #  Helpers  #
@@ -83,14 +81,19 @@ _install_dev_packages:
 	@pipenv install -d
 
 _check_package_zip:
-	ifeq ($(wildcard $(SERVICE).zip),)
-		$(error [!] '$(SERVICE).zip' package doesn't exist. Run 'make package' first)
-	endif
+ifeq ($(wildcard $(SERVICE).zip),)
+	$(error [!] '$(SERVICE).zip' package doesn't exist. Run 'make package' first)
+endif
 
 _check_package_yaml:
-	ifeq ($(wildcard packaged.yaml),)
-		$(error[!] 'packaged.yaml' file doesn't exist. Run 'make upload' first)
-	endif
+ifeq ($(wildcard packaged.yaml),)
+	$(error[!] 'packaged.yaml' file doesn't exist. Run 'make upload' first)
+endif
+
+_check_bucket_definition:
+ifndef BUCKET
+	$(error [!] BUCKET env not defined...FAIL)
+endif
 
 _check_service_definition:
 	$(info [*] Checking whether service $(SERVICE) exists...)

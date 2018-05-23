@@ -4,6 +4,7 @@
     "project_module_slug": "{{ cookiecutter.project_name.lower().replace(' ', '_').replace('-', '_') }}",
     "project_short_description": "A short description of the project",
     "lambda_function_name": "{{ cookiecutter.project_name.lower().replace('-', ' ').replace('_', ' ').title().replace(' ', '') }}",
+    "cf_stack_name": "{{ cookiecutter.project_name.lower().replace(' ', '-').replace('_', '-') }}",
     "include_apigw": "y",
     "include_safe_deployment": "y"
 }
