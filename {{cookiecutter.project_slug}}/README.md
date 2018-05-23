@@ -14,17 +14,20 @@
 Provided that you have requirements above installed, proceed by installing the application dependencies and development dependencies:
 
 ```bash
-pipenv install
-pipenv install -d
+make install
 ```
+
+This is equivalent to `pipenv install && pipenv install -d` and will create a virtualenv which you can enter with `make shell` (or `pipenv shell`).
 
 ## Testing
 
 `Pytest` is used to discover tests created under `tests` folder - Here's how you can run tests our initial unit tests:
 
 ```bash
-pipenv run python -m pytest tests/ -v
+make test
 ```
+
+This is equivalent to `pipenv run python -m pytest tests/ -v`
 
 **Tip**: Commands passed to `pipenv run` will be executed in the Virtual environment created for our project.
 
@@ -41,18 +44,9 @@ AWS Lambda Python runtime requires a flat folder with all dependencies including
             ...
 ```
 
-With that in mind, we will:
+`make build` will install all of the required dependencies to `build/`, and hard-link the contents of your module directory so that you don't need to re-build when changing existing files.
 
-1. Generate a hashed `requirements.txt` out of our `Pipfile` dep file
-1. Install all dependencies directly to `build` sub-folder
-2. Copy our function (app.py) into `build` sub-folder
-
-```bash
-# Create a hashed pip requirements.txt file only with our app dependencies (no dev deps)
-pipenv lock -r > requirements.txt
-pip install -r requirements.txt -t build/
-cp -R {{ cookiecutter.project_module_slug }} build/
-```
+`make package` does the same thing as `make build`, but it does so inside a [LambCI Lambda Docker container](https://hub.docker.com/r/lambci/lambda/) by default (disable this by setting `DOCKER=0`) to ensure that any C-extensions or other platform-specific doodads will work correctly in the Lambda execution environment. It creates a Zip file of the resulting build that is appropriate for uploading and deploying to Lambda.
 
 ### Local development
 
@@ -82,21 +76,31 @@ aws s3 mb s3://BUCKET_NAME
 ```
 
 Provided you have a S3 bucket created, run the following command to package our Lambda function to S3:
+```bash
+make upload BUCKET=<bucket_name>
+```
 
+This is equivalent to:
 ```bash
 aws cloudformation package \
     --template-file template.yaml \
     --output-template-file packaged.yaml \
-    --s3-bucket REPLACE_THIS_WITH_YOUR_S3_BUCKET_NAME
+    --s3-bucket <bucket_name>
 ```
 
 Next, the following command will create a Cloudformation Stack and deploy your SAM resources.
 
 ```bash
+make deploy
+```
+
+This is equivalent to:
+```bash
 aws cloudformation deploy \
     --template-file packaged.yaml \
     --stack-name {{ cookiecutter.project_slug }} \
-    --capabilities CAPABILITY_IAM
+    --capabilities CAPABILITY_NAMED_IAM
+    --region us-east-1
 ```
 
 > **See [Serverless Application Model (SAM) HOWTO Guide](https://github.com/awslabs/serverless-application-model/blob/master/HOWTO.md) for more details in how to get started.**
@@ -111,37 +115,3 @@ aws cloudformation describe-stacks \
 ``` 
 {% endif %}
 
-# Appendix
-## Makefile
-
-It is important that the Makefile created only works on OSX/Linux but the tasks above can easily be turned into a Powershell or any scripting language you may want too.
-
-The following make targets will automate that we went through above:
-
-* Find all available targets: `make`
-* Install all deps and clone (OS hard link) our lambda function to `/build`: `make build`
-    - By creating a hard link we no longer need to keep copying our app over to Build and keeps it tidy and clean
-* Run `Pytest` against all tests found under `tests` folder: `make test`
-* Install all deps and builds a ZIP file ready to be deployed: `make package`
-    - You can also build deps and a ZIP file within a Docker Lambda container: `make package DOCKER=1`
-    - This is particularly useful when using C-extensions that if built on your OS may not work when deployed to Lambda (different OS)
-
-## AWS CLI commands
-
-AWS CLI commands to package, deploy and describe outputs defined within the cloudformation stack:
-
-```bash
-aws cloudformation package \
-    --template-file template.yaml \
-    --output-template-file packaged.yaml \
-    --s3-bucket REPLACE_THIS_WITH_YOUR_S3_BUCKET_NAME
-
-aws cloudformation deploy \
-    --template-file packaged.yaml \
-    --stack-name {{ cookiecutter.project_slug }} \
-    --capabilities CAPABILITY_IAM \
-    --parameter-overrides MyParameterSample=MySampleValue
-
-aws cloudformation describe-stacks \
-    --stack-name {{ cookiecutter.project_slug }} --query 'Stacks[].Outputs'
-```
