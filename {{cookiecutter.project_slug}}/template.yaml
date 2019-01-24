@@ -56,11 +56,11 @@ Resources:
 Outputs:
 {% if cookiecutter.include_apigw == "y"%}
   FirstApigwURL:
-    Description: "API Gateway endpoint URL for Prod environment for First Function"
+    Description: "API Gateway endpoint URL for Prod environment for {{ cookiecutter.lambda_function_name }}"
     Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/first/proxy"
 {%- endif %}
 
   {{ cookiecutter.lambda_function_name }}:
-    Description: "First Lambda Function ARN"
+    Description: "{{ cookiecutter.project_short_description }}"
     Value: !GetAtt {{ cookiecutter.lambda_function_name }}.Arn
 
