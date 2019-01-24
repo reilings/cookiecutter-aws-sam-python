@@ -6,7 +6,7 @@
 If you have local AWS credentials available, S3 and CloudFormation permissions, and have already installed the [required software](#requirements), you can deploy a function **right now**:
 
 ```bash
-aws mb s3://my-bucket-rename-me
+aws s3 mb s3://my-bucket-rename-me
 make install && make package && make upload BUCKET=my-bucket-rename-me && make deploy
 ```
 
